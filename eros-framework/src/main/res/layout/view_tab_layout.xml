@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <com.eros.framework.view.NoScrollViewPager
+        android:id="@+id/viewpager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/borderLine" />
+
+    <ImageView
+        android:id="@+id/borderLine"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/half_dp"
+        android:layout_above="@+id/llTabBar" />
+
+    <!--底部tabbar-->
+    <LinearLayout
+        android:id="@+id/llTabBar"
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerVertical="true"
+        android:orientation="horizontal">
+
+    </LinearLayout>
+
+
+</RelativeLayout>
