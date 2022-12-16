@@ -81,6 +81,7 @@ public class TableView extends RelativeLayout implements ViewPager.OnPageChangeL
         llTabBar = (LinearLayout) view.findViewById(R.id.llTabBar);
         borderLine = (ImageView) view.findViewById(R.id.borderLine);
         viewpager = (NoScrollViewPager) view.findViewById(R.id.viewpager);
+
     }
 
     public void setData(PlatformConfigBean.TabBar tabBar) {
@@ -206,6 +207,7 @@ public class TableView extends RelativeLayout implements ViewPager.OnPageChangeL
         }
         MainWeexFragment fragment = fragments.get(index);
         fragment.setNavigator(navigatorArray.get(index));
+        activity.getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
     }
 
 

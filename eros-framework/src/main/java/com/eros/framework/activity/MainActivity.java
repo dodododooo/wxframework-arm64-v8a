@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewStub;
 import android.view.WindowManager;
@@ -50,6 +51,8 @@ public class MainActivity extends AbstractWeexActivity {
         initReloadReceiver();
 
         statusBarHidden(BMWXApplication.getWXApplication().IS_FULL_SCREEN);
+        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+
     }
 
 
