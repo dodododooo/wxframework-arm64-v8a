@@ -36,96 +36,96 @@ import com.taobao.weex.bridge.JSCallback;
  */
 
 public class EventCamera extends EventGate {
-    private JSCallback mUploadAvatar, mScanCallback, mScreenShotCallback;
-    private Context mUploadContext;
+  private JSCallback mUploadAvatar, mScanCallback, mScreenShotCallback;
+  private Context mUploadContext;
 
-    @Override
-    public void perform(Context context, WeexEventBean weexEventBean, String type) {
-        String params = weexEventBean.getJsParams();
-        if (WXEventCenter.EVENT_CAMERA_UPLOADIMAGE.equals(type)) {
-            uploadImage(params, context, weexEventBean.getJscallback());
-        } else if (WXEventCenter.EVENT_CAMERA_PATH.equals(type)) {
-            openCamera(params, context, weexEventBean.getJscallback());
-        } else if (WXEventCenter.EVENT_CAMERA.equals(type)) {
-            scan(weexEventBean.getJscallback(), context);
-        }
+  @Override
+  public void perform(Context context, WeexEventBean weexEventBean, String type) {
+    String params = weexEventBean.getJsParams();
+    if (WXEventCenter.EVENT_CAMERA_UPLOADIMAGE.equals(type)) {
+      uploadImage(params, context, weexEventBean.getJscallback());
+    } else if (WXEventCenter.EVENT_CAMERA_PATH.equals(type)) {
+      openCamera(params, context, weexEventBean.getJscallback());
+    } else if (WXEventCenter.EVENT_CAMERA.equals(type)) {
+      scan(weexEventBean.getJscallback(), context);
+    }
+  }
+
+  public void scan(JSCallback jscallback, Context context) {
+    mScanCallback = jscallback;
+    CameraManager cameraManager = ManagerFactory.getManagerService(CameraManager.class);
+    CameraManager.ScanConfig.ConfigBuilder builder = new CameraManager.ScanConfig
+      .ConfigBuilder();
+    builder.setBeepEnable(true).setCodeFormat(IntentIntegrator.ALL_CODE_TYPES).setContext(
+      (Activity) context).setPrompt(context.getResources().getString(R.string
+      .capture_qrcode_prompt));
+    cameraManager.scanCode(builder.build());
+    ManagerFactory.getManagerService(DispatchEventManager.class).getBus().register(this);
+  }
+
+  @Subscribe
+  public void OnScanResult(CameraResultBean bean) {
+    if (this.mScanCallback == null || bean == null) return;
+    if (TextUtils.isEmpty(bean.text)) {
+      JsPoster.postFailed(mScanCallback);
+    } else {
+      JsPoster.postSuccess(bean.text, mScanCallback);
+    }
+    ManagerFactory.getManagerService(DispatchEventManager.class).getBus().unregister(this);
+  }
+
+
+  public void uploadImage(String json, Context context, JSCallback jsCallback) {
+    if (!PermissionUtils.checkPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE)) {
+      ModalManager.BmToast.toast(context, "读取存储权限未授予，请到应用设置页面开启权限!", Toast.LENGTH_SHORT);
+      return;
+    }
+    mUploadAvatar = jsCallback;
+    mUploadContext = context;
+    UploadImageBean bean = ManagerFactory.getManagerService(ParseManager.class).parseObject
+      (json, UploadImageBean.class);
+    ManagerFactory.getManagerService(DispatchEventManager.class).getBus().register(this);
+    ImageManager imageManager = ManagerFactory.getManagerService(ImageManager.class);
+    if (bean.allowCrop && bean.maxCount == 1) {
+      //上传头像
+      imageManager.pickAvatar(context, bean, Constant.ImageConstants.IMAGE_PICKER);
+    } else if (bean.maxCount > 0) {
+      imageManager.pickPhoto(context, bean, Constant.ImageConstants.IMAGE_PICKER);
     }
 
-    public void scan(JSCallback jscallback, Context context) {
-        mScanCallback = jscallback;
-        CameraManager cameraManager = ManagerFactory.getManagerService(CameraManager.class);
-        CameraManager.ScanConfig.ConfigBuilder builder = new CameraManager.ScanConfig
-                .ConfigBuilder();
-        builder.setBeepEnable(true).setCodeFormat(IntentIntegrator.ALL_CODE_TYPES).setContext(
-                (Activity) context).setPrompt(context.getResources().getString(R.string
-                .capture_qrcode_prompt));
-        cameraManager.scanCode(builder.build());
-        ManagerFactory.getManagerService(DispatchEventManager.class).getBus().register(this);
+  }
+
+  public void openCamera(String json, Context context, JSCallback jsCallback) {
+    Log.d("openCamera", "openCamera: ");
+    if (!PermissionUtils.checkPermission(context, Manifest.permission.CAMERA)) {
+      ModalManager.BmToast.toast(context, "相机权限未授予，请到应用设置页面开启权限!", Toast.LENGTH_SHORT);
+      return;
+    }
+    mUploadAvatar = jsCallback;
+    mUploadContext = context;
+    UploadImageBean bean = ManagerFactory.getManagerService(ParseManager.class).parseObject
+      (json, UploadImageBean.class);
+    ManagerFactory.getManagerService(DispatchEventManager.class).getBus().register(this);
+    ImageManager imageManager = ManagerFactory.getManagerService(ImageManager.class);
+    imageManager.openCamera(context, bean);
+  }
+
+
+  @Subscribe
+  public void OnUploadResult(UploadResultBean uploadResultBean) {
+    if (uploadResultBean != null && mUploadAvatar != null) {
+      JsPoster.postSuccess(TextUtil.conversionObject(uploadResultBean.data), mUploadAvatar);
+    }
+    if (uploadResultBean != null && mScreenShotCallback != null) {
+      JsPoster.postSuccess(uploadResultBean.data, mScreenShotCallback);
     }
 
-    @Subscribe
-    public void OnScanResult(CameraResultBean bean) {
-        if (this.mScanCallback == null || bean == null) return;
-        if (TextUtils.isEmpty(bean.text)) {
-            JsPoster.postFailed(mScanCallback);
-        } else {
-            JsPoster.postSuccess(bean.text, mScanCallback);
-        }
-        ManagerFactory.getManagerService(DispatchEventManager.class).getBus().unregister(this);
-    }
-
-
-    public void uploadImage(String json, Context context, JSCallback jsCallback) {
-        if (!PermissionUtils.checkPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE)) {
-          ModalManager.BmToast.toast(context, "读取存储权限未授予，请到应用设置页面开启权限!", Toast.LENGTH_SHORT);
-            return;
-        }
-        mUploadAvatar = jsCallback;
-        mUploadContext = context;
-        UploadImageBean bean = ManagerFactory.getManagerService(ParseManager.class).parseObject
-                (json, UploadImageBean.class);
-        ManagerFactory.getManagerService(DispatchEventManager.class).getBus().register(this);
-        ImageManager imageManager = ManagerFactory.getManagerService(ImageManager.class);
-        if (bean.allowCrop && bean.maxCount == 1) {
-            //上传头像
-            imageManager.pickAvatar(context, bean, Constant.ImageConstants.IMAGE_PICKER);
-        } else if (bean.maxCount > 0) {
-            imageManager.pickPhoto(context, bean, Constant.ImageConstants.IMAGE_PICKER);
-        }
-
-    }
-
-    public void openCamera(String json, Context context, JSCallback jsCallback) {
-      Log.d("openCamera", "openCamera: ");
-        if (!PermissionUtils.checkPermission(context, Manifest.permission.CAMERA)) {
-          ModalManager.BmToast.toast(context, "相机权限未授予，请到应用设置页面开启权限!", Toast.LENGTH_SHORT);
-            return;
-        }
-        mUploadAvatar = jsCallback;
-        mUploadContext = context;
-        UploadImageBean bean = ManagerFactory.getManagerService(ParseManager.class).parseObject
-                (json, UploadImageBean.class);
-        ManagerFactory.getManagerService(DispatchEventManager.class).getBus().register(this);
-        ImageManager imageManager = ManagerFactory.getManagerService(ImageManager.class);
-        imageManager.openCamera(context, bean);
-    }
-
-
-    @Subscribe
-    public void OnUploadResult(UploadResultBean uploadResultBean) {
-        if (uploadResultBean != null && mUploadAvatar != null) {
-            JsPoster.postSuccess(TextUtil.conversionObject(uploadResultBean.data), mUploadAvatar);
-        }
-        if (uploadResultBean != null && mScreenShotCallback != null) {
-            JsPoster.postSuccess(uploadResultBean.data, mScreenShotCallback);
-        }
-
-        ModalManager.BmLoading.dismissLoading(mUploadContext);
-        ManagerFactory.getManagerService(DispatchEventManager.class).getBus().unregister(this);
-        mScreenShotCallback = null;
-        mUploadAvatar = null;
-        ManagerFactory.getManagerService(PersistentManager.class).deleteCacheData(Constant
-                .ImageConstants.UPLOAD_IMAGE_BEAN);
-    }
+    ModalManager.BmLoading.dismissLoading(mUploadContext);
+    ManagerFactory.getManagerService(DispatchEventManager.class).getBus().unregister(this);
+    mScreenShotCallback = null;
+    mUploadAvatar = null;
+    ManagerFactory.getManagerService(PersistentManager.class).deleteCacheData(Constant
+      .ImageConstants.UPLOAD_IMAGE_BEAN);
+  }
 
 }
