@@ -7,6 +7,7 @@ import android.content.Context;
 import android.os.Handler;
 import android.support.multidex.MultiDex;
 import android.util.DebugUtils;
+import android.util.Log;
 
 import com.eros.framework.activity.AbstractWeexActivity;
 import com.eros.framework.adapter.router.RouterTracker;
@@ -42,14 +43,18 @@ public class BMWXApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        if (shouldInit()) {
-            mInstance = this;
-            initWeex();
-            mVersionChecker = new VersionChecker(this);
-            registerLifecycle();
-            initDebugSocket();
+      Log.d("PPPPPPPPPPPP", "onCreate: BMWXApplication extends Application");
+    }
+
+    public void initApp() {
+      if (shouldInit()) {
+        mInstance = this;
+        initWeex();
+        mVersionChecker = new VersionChecker(this);
+        registerLifecycle();
+        initDebugSocket();
 //            mWatcher = DebugableUtil.isDebug() ? LeakCanary.install(this) : RefWatcher.DISABLED;
-        }
+      }
     }
 
 

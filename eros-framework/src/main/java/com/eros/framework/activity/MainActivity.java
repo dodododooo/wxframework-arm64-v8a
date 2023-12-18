@@ -37,6 +37,7 @@ public class MainActivity extends AbstractWeexActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+      Log.d("PPPPPPPPPPPP", "onCreate: MainActivity extends AbstractWeexActivit");
         setContentView(R.layout.activity_main);
 //        AndroidBug5497Workaround.assistActivity(this);
         routerModel = (RouterModel) getIntent().getSerializableExtra(Constant.ROUTERPARAMS);
